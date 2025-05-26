@@ -97,10 +97,8 @@
     const evaluationBox = document.getElementById("evaluation");
     const targetBox = document.getElementById("targetBox");
     const gameNumberDate = document.getElementById("gameNumberDate");
-    const buttonGrid = document.getElementById("buttonGrid");
     const submitBtn = document.getElementById("submitBtn");
 
-    // PRNG
     function mulberry32(a) {
       return function() {
         var t = a += 0x6D2B79F5;
@@ -162,8 +160,8 @@
       const score = Math.abs(Number(result) - target);
       if (score === 0) {
         animateQu0x();
-        document.getElementById("shareBtn").classList.remove("hidden");
         shareableText = `I solved Qu0x! 🎲∞ with target ${target} using [${diceValues.join(", ")}]!\nTry it: https://qu0x.com`;
+        document.getElementById("shareBtn").style.display = "inline-block";
         setTimeout(() => startNewGame(), 2000);
       } else {
         alert(`Close! You’re off by ${score}. Try again.`);
@@ -186,7 +184,11 @@
       const seed = Math.floor(Math.random() * 99999) + 1;
       const rand = mulberry32(seed);
 
-      diceValues = Array.from({ length: 5 }, () => Math.floor(rand() * 6) + 1);
+      diceValues = [];
+      for (let i = 0; i < 5; i++) {
+        diceValues.push(Math.floor(rand() * 6) + 1);
+      }
+
       target = Math.floor(rand() * 100) + 1;
 
       expressionBox.innerText = "";
@@ -195,9 +197,9 @@
 
       renderDice();
       targetBox.innerText = `Target: ${target}`;
-      gameNumberDate.innerText = `Random Seed: ${seed}`;
+      gameNumberDate.innerText = `Seed: ${seed}`;
       submitBtn.disabled = false;
-      document.getElementById("shareBtn").classList.add("hidden");
+      document.getElementById("shareBtn").style.display = "none";
     }
 
     startNewGame();
