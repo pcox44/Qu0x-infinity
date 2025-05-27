@@ -48,17 +48,11 @@ function styleDie(die, val) {
   die.style.color = style.fg;
 }
 
-function generateRandomPuzzle(seed) {
-  function pseudoRand(x) {
-    return Math.abs(Math.sin(x)) % 1;
-  }
-
-  diceValues = Array.from({ length: 5 }, (_, i) => {
-    return Math.floor(pseudoRand(seed + i) * 6) + 1;
-  });
-
-  target = Math.floor(pseudoRand(seed + 5) * 100) + 1;
+function generateRandomPuzzle() {
+  diceValues = Array.from({ length: 5 }, () => Math.floor(Math.random() * 6) + 1);
+  target = Math.floor(Math.random() * 100) + 1;
 }
+
 
 
 
