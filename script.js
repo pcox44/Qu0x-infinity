@@ -10,8 +10,6 @@ const masterScoreBox = document.getElementById("masterScore");
 const gameNumberDate = document.getElementById("gameNumberDate");
 const qu0xAnimation = document.getElementById("qu0xAnimation");
 
-// REMOVE dropdown completely, so no dropdown variable.
-
 // New Puzzle button fixed at bottom center
 const newPuzzleBtn = document.createElement("button");
 newPuzzleBtn.innerText = "New Puzzle";
@@ -28,9 +26,7 @@ let diceValues = [];
 let target = null;
 let usedDice = [];
 
-// No locking or bestScores for this infinite mode
-
-// Dice coloring as before
+// Dice coloring
 function styleDie(die, val) {
   const styles = {
     1: { bg: "red", fg: "white" },
@@ -179,10 +175,14 @@ function buildButtons() {
 
         if (/\d/.test(removed)) {
           // Remove used dice by matching last die with that value
-          const idx = usedDice.slice().reverse().find(i => diceValues[i].toString() === removed);
-          if (idx !== undefined) {
-            usedDice = usedDice.filter(i => i !== idx);
-            document.querySelector(`.die[data-index="${idx}"]`)?.classList.remove("faded");
+          // Find last used dice index for removed digit:
+          for (let i = usedDice.length - 1; i >= 0; i--) {
+            const idx = usedDice[i];
+            if (diceValues[idx].toString() === removed) {
+              usedDice.splice(i, 1);
+              document.querySelector(`.die[data-index="${idx}"]`)?.classList.remove("faded");
+              break;
+            }
           }
         }
       } else if (op === "Clear") {
@@ -196,6 +196,30 @@ function buildButtons() {
     };
     buttonGrid.appendChild(btn);
   });
+}
+
+// LocalStorage helpers to save completed puzzles
+function getCompletedPuzzles() {
+  const data = localStorage.getItem("completedPuzzles");
+  return data ? JSON.parse(data) : [];
+}
+
+function saveCompletedPuzzle(seed) {
+  let completed = getCompletedPuzzles();
+  if (!completed.includes(seed)) {
+    completed.push(seed);
+    localStorage.setItem("completedPuzzles", JSON.stringify(completed));
+  }
+}
+
+// Find first uncompleted puzzle seed starting from 1
+function findFirstUncompletedSeed() {
+  const completed = new Set(getCompletedPuzzles());
+  let seed = 1;
+  while (completed.has(seed)) {
+    seed++;
+  }
+  return seed;
 }
 
 function submit() {
@@ -215,10 +239,22 @@ function submit() {
 
   const score = Math.abs(Number(result) - target);
   alert(`Your score (distance from target): ${score}`);
+
+  // Mark this puzzle as completed
+  saveCompletedPuzzle(currentPuzzleSeed);
+
+  // Disable submit & inputs until next puzzle
+  submitBtn.disabled = true;
+  expressionBox.style.pointerEvents = "none";
+  buttonGrid.querySelectorAll("button").forEach(btn => btn.disabled = true);
 }
 
-function startNewPuzzle() {
-  currentPuzzleSeed++;
+function startNewPuzzle(seed = null) {
+  if (seed === null) {
+    currentPuzzleSeed++;
+  } else {
+    currentPuzzleSeed = seed;
+  }
   generateRandomPuzzle(currentPuzzleSeed);
   usedDice = [];
   expressionBox.innerText = "";
@@ -236,5 +272,6 @@ newPuzzleBtn.onclick = () => startNewPuzzle();
 
 window.onload = () => {
   buildButtons();
-  startNewPuzzle();
+  const seedToStart = findFirstUncompletedSeed();
+  startNewPuzzle(seedToStart);
 };
