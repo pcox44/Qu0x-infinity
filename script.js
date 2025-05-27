@@ -225,7 +225,7 @@ function startNewPuzzle() {
   evaluationBox.innerText = "?";
   renderDice();
   targetBox.innerText = `Target: ${target}`;
-  gameNumberDate.innerText = `Puzzle #${currentPuzzleSeed}`;
+  gameNumberDate.innerText = `Puzzle #${currentPuzzleSeed - 1}`;
   submitBtn.disabled = false;
   expressionBox.style.pointerEvents = "auto";
   buttonGrid.querySelectorAll("button").forEach(btn => btn.disabled = false);
