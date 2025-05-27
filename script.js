@@ -49,20 +49,18 @@ function styleDie(die, val) {
 }
 
 function generateRandomPuzzle(seed) {
-  // Use sin(seed) to generate a float between 0-1, deterministic
-  // Scale and mod for dice and target
-
   function pseudoRand(x) {
     return Math.abs(Math.sin(x)) % 1;
   }
 
   diceValues = Array.from({ length: 5 }, (_, i) => {
-    const val = Math.floor(pseudoRand(seed + i) * 6) + 1;
-    return val;
+    return Math.floor(pseudoRand(seed + i) * 6) + 1;
   });
 
   target = Math.floor(pseudoRand(seed + 5) * 100) + 1;
 }
+
+
 
 function renderDice() {
   diceContainer.innerHTML = "";
