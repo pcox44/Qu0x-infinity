@@ -1,218 +1,112 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Qu0x! Infinite Mode</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: #111;
-      color: #fff;
-      margin: 0;
-      padding: 1em;
-    }
-    h1 {
-      font-size: 2em;
-      margin: 0.5em;
-    }
-    #targetBox, #gameNumberDate {
-      margin: 0.5em;
-      font-size: 1.2em;
-    }
-    #diceBox {
-      margin: 1em;
-    }
-    .dice {
-      font-size: 2em;
-      margin: 0.2em;
-      padding: 0.5em;
-      background: #333;
-      border-radius: 10px;
-      display: inline-block;
-      cursor: pointer;
-    }
-    .disabled {
-      opacity: 0.4;
-      pointer-events: none;
-    }
-    #expressionBox {
-      min-height: 1.5em;
-      border: 1px solid #888;
-      padding: 0.5em;
-      margin-bottom: 0.5em;
-      width: 300px;
-      text-align: center;
-      background: #222;
-    }
-    #evalBox {
-      margin: 0.5em;
-    }
-    #buttonGrid button {
-      margin: 0.2em;
-      padding: 0.5em;
-      font-size: 1em;
-      background: #222;
-      color: #fff;
-      border: 1px solid #666;
-      border-radius: 5px;
-    }
-    #submitBtn, #newGameBtn, #shareBtn {
-      margin-top: 1em;
-      padding: 0.5em 1em;
-      font-size: 1em;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      background: #444;
-      color: white;
-    }
-    #shareBtn {
-      display: none;
-    }
-  </style>
-</head>
-<body>
-  <h1>Qu0x! 🎲∞</h1>
-  <div id="targetBox">Target: --</div>
-  <div id="gameNumberDate">Seed: --</div>
-  <div id="diceBox"></div>
+document.addEventListener("DOMContentLoaded", () => {
+  const targetBox = document.getElementById("targetBox");
+  const diceContainer = document.getElementById("diceContainer");
+  const buttonGrid = document.getElementById("buttonGrid");
 
-  <div id="expressionBox" contenteditable="true" oninput="evaluate()"></div>
-  <div id="evalBox">= <span id="evaluation">?</span></div>
+  const submitBtn = document.getElementById("submitBtn");
+  const evaluationBox = document.getElementById("evaluationBox");
+  const expressionBox = document.getElementById("expressionBox");
 
-  <div id="buttonGrid">
-    <button onclick="appendOperator('+')">+</button>
-    <button onclick="appendOperator('-')">-</button>
-    <button onclick="appendOperator('*')">*</button>
-    <button onclick="appendOperator('/')">/</button>
-    <button onclick="appendOperator('(')">(</button>
-    <button onclick="appendOperator(')')">)</button>
-    <button onclick="clearExpression()">🗑️</button>
-  </div>
+  let diceValues = [];
+  let targetNumber = 0;
+  let expression = "";
 
-  <button id="submitBtn" onclick="submit()">Submit</button>
-  <button id="newGameBtn" onclick="startNewGame()">New Game</button>
-  <button id="shareBtn" onclick="navigator.clipboard.writeText(shareableText)">Copy Share Link</button>
+  function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
 
-  <script>
-    let diceValues = [];
-    let target = 0;
-    let usedDice = [];
-    let shareableText = "";
+  function generateDice() {
+    diceValues = Array.from({ length: 5 }, () => getRandomInt(1, 9));
+    renderDice();
+  }
 
-    const diceBox = document.getElementById("diceBox");
-    const expressionBox = document.getElementById("expressionBox");
-    const evaluationBox = document.getElementById("evaluation");
-    const targetBox = document.getElementById("targetBox");
-    const gameNumberDate = document.getElementById("gameNumberDate");
+  function generateTarget() {
+    targetNumber = getRandomInt(30, 100);
+    targetBox.textContent = `Target: ${targetNumber}`;
+  }
 
-    function mulberry32(seed) {
-      return function() {
-        let t = seed += 0x6D2B79F5;
-        t = Math.imul(t ^ t >>> 15, t | 1);
-        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-        return ((t ^ t >>> 14) >>> 0) / 4294967296;
-      };
+  function renderDice() {
+    diceContainer.innerHTML = "";
+    diceValues.forEach((val, index) => {
+      const die = document.createElement("button");
+      die.textContent = val;
+      die.classList.add("dice");
+      die.addEventListener("click", () => addToExpression(val, index));
+      diceContainer.appendChild(die);
+    });
+  }
+
+  function renderButtons() {
+    const operators = ["+", "-", "*", "/", "^", "(", ")", "!", "←", "C"];
+    buttonGrid.innerHTML = "";
+
+    operators.forEach((op) => {
+      const btn = document.createElement("button");
+      btn.textContent = op;
+      btn.addEventListener("click", () => handleOperator(op));
+      buttonGrid.appendChild(btn);
+    });
+  }
+
+  function addToExpression(value, index) {
+    expression += value;
+    updateExpressionBox();
+  }
+
+  function handleOperator(op) {
+    if (op === "←") {
+      expression = expression.slice(0, -1);
+    } else if (op === "C") {
+      expression = "";
+    } else {
+      expression += op;
     }
+    updateExpressionBox();
+  }
 
-    function renderDice() {
-      diceBox.innerHTML = "";
-      diceValues.forEach((val, i) => {
-        const btn = document.createElement("button");
-        btn.innerText = val;
-        btn.classList.add("dice");
-        if (usedDice.includes(i)) {
-          btn.classList.add("disabled");
-        }
-        btn.onclick = () => {
-          if (!usedDice.includes(i)) {
-            expressionBox.innerText += val;
-            usedDice.push(i);
-            renderDice();
-            evaluate();
-          }
-        };
-        diceBox.appendChild(btn);
-      });
+  function updateExpressionBox() {
+    expressionBox.textContent = expression;
+  }
+
+  function evaluateExpression() {
+    try {
+      let result = eval(expression.replace(/!/g, '')); // factorial not yet handled
+      evaluationBox.textContent = result;
+
+      let score = Math.abs(targetNumber - result);
+      alert(`Score: ${score}`);
+    } catch (e) {
+      evaluationBox.textContent = "Error";
     }
+  }
 
-    function appendOperator(op) {
-      expressionBox.innerText += op;
-      evaluate();
-    }
+  function startNewGame() {
+    generateDice();
+    generateTarget();
+    expression = "";
+    updateExpressionBox();
+    evaluationBox.textContent = "?";
+  }
 
-    function clearExpression() {
-      expressionBox.innerText = "";
-      evaluationBox.innerText = "?";
-      usedDice = [];
-      renderDice();
-    }
+  // Event Listeners
+  submitBtn.addEventListener("click", evaluateExpression);
 
-    function evaluate() {
-      const expr = expressionBox.innerText;
-      try {
-        const result = Function('"use strict";return (' + expr + ')')();
-        evaluationBox.innerText = Math.round(result * 1000) / 1000;
-      } catch {
-        evaluationBox.innerText = "?";
-      }
-    }
+  // Add New Game Button
+  const newGameBtn = document.createElement("button");
+  newGameBtn.textContent = "New Game";
+  newGameBtn.style.margin = "10px";
+  newGameBtn.style.padding = "10px 20px";
+  newGameBtn.style.fontSize = "1.1em";
+  newGameBtn.style.backgroundColor = "green";
+  newGameBtn.style.color = "white";
+  newGameBtn.style.borderRadius = "8px";
+  newGameBtn.style.border = "2px solid black";
+  newGameBtn.style.cursor = "pointer";
+  newGameBtn.addEventListener("click", startNewGame);
 
-    function submit() {
-      const result = evaluationBox.innerText;
-      if (result === "?" || usedDice.length !== 5 || !Number.isInteger(Number(result))) {
-        alert("Invalid or incomplete submission.");
-        return;
-      }
-      const score = Math.abs(Number(result) - target);
-      if (score === 0) {
-        animateWin();
-        shareableText = `I solved Qu0x! 🎲∞ with target ${target} using [${diceValues.join(", ")}]!\nTry it: https://qu0x.com`;
-        document.getElementById("shareBtn").style.display = "inline-block";
-        setTimeout(() => startNewGame(), 2000);
-      } else {
-        alert(`Close! You’re off by ${score}. Try again.`);
-      }
-    }
+  document.body.insertBefore(newGameBtn, document.querySelector(".instructions"));
 
-    function animateWin() {
-      const h1 = document.querySelector("h1");
-      h1.animate([
-        { transform: "scale(1)", color: "#fff" },
-        { transform: "scale(1.3)", color: "#0f0" },
-        { transform: "scale(1)", color: "#fff" }
-      ], {
-        duration: 800,
-        iterations: 1
-      });
-    }
-
-    function startNewGame() {
-      const seed = Math.floor(Math.random() * 99999) + 1;
-      const rand = mulberry32(seed);
-
-      diceValues = [];
-      for (let i = 0; i < 5; i++) {
-        diceValues.push(Math.floor(rand() * 6) + 1);
-      }
-
-      target = Math.floor(rand() * 100) + 1;
-
-      expressionBox.innerText = "";
-      evaluationBox.innerText = "?";
-      usedDice = [];
-
-      renderDice();
-      targetBox.innerText = `Target: ${target}`;
-      gameNumberDate.innerText = `Seed: ${seed}`;
-      document.getElementById("shareBtn").style.display = "none";
-    }
-
-    startNewGame();
-  </script>
-</body>
-</html>
+  // Initialize game
+  renderButtons();
+  startNewGame();
+});
