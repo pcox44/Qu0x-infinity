@@ -238,6 +238,26 @@ function submit() {
   }
 
   const score = Math.abs(Number(result) - target);
+
+  // If perfect score (Qu0x), skip alert and immediately start next puzzle
+  if (score === 0) {
+    saveCompletedPuzzle(currentPuzzleSeed);
+    startNewPuzzle(currentPuzzleSeed + 1);
+    return;
+  }
+
+  alert(`Your score (distance from target): ${score}`);
+
+  // Mark this puzzle as completed
+  saveCompletedPuzzle(currentPuzzleSeed);
+
+  // Disable submit & inputs until next puzzle
+  submitBtn.disabled = true;
+  expressionBox.style.pointerEvents = "none";
+  buttonGrid.querySelectorAll("button").forEach(btn => btn.disabled = true);
+}
+
+  const score = Math.abs(Number(result) - target);
   alert(`Your score (distance from target): ${score}`);
 
   // Mark this puzzle as completed
