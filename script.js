@@ -10,6 +10,22 @@ const masterScoreBox = document.getElementById("masterScore");
 const gameNumberDate = document.getElementById("gameNumberDate");
 const qu0xAnimation = document.getElementById("qu0xAnimation");
 
+// New Puzzle button fixed at bottom center
+const newPuzzleBtn = document.createElement("button");
+newPuzzleBtn.innerText = "New Puzzle";
+
+// Remove fixed positioning styles:
+// newPuzzleBtn.style.position = "fixed";
+// newPuzzleBtn.style.bottom = "10px";
+// newPuzzleBtn.style.left = "50%";
+// newPuzzleBtn.style.transform = "translateX(-50%)";
+
+newPuzzleBtn.style.marginTop = "10px";
+newPuzzleBtn.style.padding = "10px 20px";
+newPuzzleBtn.style.fontSize = "16px";
+
+// Insert newPuzzleBtn immediately after submitBtn
+submitBtn.insertAdjacentElement('afterend', newPuzzleBtn);
 
 
 let currentPuzzleSeed = 1;  // starting seed counter for sin seeding
